@@ -1,0 +1,38 @@
+# Dos servicios: la base de datos MySQL y la aplicación Flask.
+#   docker compose up --build      -> levanta todo
+#   http://localhost:5000          -> la aplicación
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass_2026
+    ports:
+      - "3307:3306"            # por si querés conectarte con MySQL Workbench / DBeaver (puerto 3307)
+    volumes:
+      # Los .sql de esta carpeta se ejecutan solos la PRIMERA vez que se crea el volumen
+      - ./sql:/docker-entrypoint-initdb.d:ro
+      - datos_mysql:/var/lib/mysql
+    healthcheck:
+      # -h 127.0.0.1 (TCP) a propósito: durante la carga inicial MySQL solo escucha por socket,
+      # así el healthcheck recién da OK cuando los scripts terminaron y el servidor real arrancó
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_pass_2026"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy   # espera a que MySQL esté listo
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: torneo_f5
+      SECRET_KEY: cambiar-en-produccion
+      TZ: America/Montevideo
+    ports:
+      - "5000:5000"
+
+volumes:
+  datos_mysql:

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block titulo %}Planilla{% endblock %}
+{% block contenido %}
+<h1>{{ p.local }} {% if p.estado == 'jugado' %}<span class="marcador">{{ p.goles_local }} - {{ p.goles_visitante }}</span>{% else %}vs{% endif %} {{ p.visitante }}</h1>
+<p>Fecha {{ p.numero_fecha }} · {{ p.dia | fmt }} · Estado: <strong>{{ p.estado }}</strong>
+   {% if p.estado != 'jugado' %}· (el resultado se calcula con los goles; se verá al marcarlo como jugado){% endif %}</p>
+<p><a class="boton gris" href="{{ url_for('partidos', torneo=p.id_torneo) }}">← Volver a partidos</a></p>
+
+{% if motivo %}<div class="aviso error">No se puede modificar la planilla: {{ motivo }}</div>{% endif %}
+
+<div class="tarjeta">
+  <h2>1. Jugadores que participaron</h2>
+  <form method="post" action="{{ url_for('planilla_guardar', id_partido=p.id_partido) }}">
+    <div class="dos-columnas">
+    {% for id_eq, nombre in [(p.id_equipo_local, p.local), (p.id_equipo_visitante, p.visitante)] %}
+      <div>
+        <h3>{{ nombre }}</h3>
+        {% for j in plantel if j.id_equipo == id_eq %}
+          <label class="check">
+            <input type="checkbox" name="jugadores" value="{{ j.ci }}"
+              {{ 'checked' if j.en_planilla }} {{ 'disabled' if motivo or (j.suspendido and not j.en_planilla) }}>
+            {{ j.numero_camiseta }} · {{ j.apellido }}, {{ j.nombre }}
+            {% if j.suspendido %}<span class="etiqueta roja">suspendido en esta fecha</span>{% endif %}
+          </label>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    </div>
+    {% if not motivo %}<button type="submit">Guardar planilla</button>{% endif %}
+  </form>
+</div>
+
+<div class="dos-columnas">
+  <div class="tarjeta">
+    <h2>2. Goles</h2>
+    <table>
+      <thead><tr><th>Min.</th><th>Jugador</th><th></th><th></th></tr></thead>
+      <tbody>
+      {% for g in goles %}
+        <tr><td>{{ g.minuto }}'</td><td>{{ g.jugador }}</td><td>{{ '(autogol)' if g.autogol }}</td>
+          <td>{% if not motivo %}<form method="post" action="{{ url_for('gol_eliminar', id_partido=p.id_partido, id_gol=g.id_gol) }}"><button class="chico peligro">Borrar</button></form>{% endif %}</td></tr>
+      {% else %}<tr><td colspan="4">Sin goles.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% if not motivo %}
+    <form method="post" action="{{ url_for('gol_agregar', id_partido=p.id_partido) }}">
+      <label>Jugador <select name="ci" required><option value="">— elegir —</option>
+        {% for j in en_planilla %}<option value="{{ j.ci }}">{{ j.apellido }}, {{ j.nombre }}</option>{% endfor %}</select></label>
+      <label>Minuto <input type="number" name="minuto" min="1" max="60" required></label>
+      <label class="check"><input type="checkbox" name="autogol" value="1"> Autogol (se acredita al rival)</label>
+      <button type="submit">Registrar gol</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="tarjeta">
+    <h2>3. Tarjetas</h2>
+    <table>
+      <thead><tr><th>Min.</th><th>Jugador</th><th>Color</th><th></th></tr></thead>
+      <tbody>
+      {% for t in tarjetas %}
+        <tr><td>{{ t.minuto }}'</td><td>{{ t.jugador }}</td><td><span class="etiqueta {{ 'roja' if t.color == 'roja' else 'amarilla' }}">{{ t.color }}</span></td>
+          <td>{% if not motivo %}<form method="post" action="{{ url_for('tarjeta_eliminar', id_partido=p.id_partido, id_tarjeta=t.id_tarjeta) }}"><button class="chico peligro">Borrar</button></form>{% endif %}</td></tr>
+      {% else %}<tr><td colspan="4">Sin tarjetas.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% if not motivo %}
+    <form method="post" action="{{ url_for('tarjeta_agregar', id_partido=p.id_partido) }}">
+      <label>Jugador <select name="ci" required><option value="">— elegir —</option>
+        {% for j in en_planilla %}<option value="{{ j.ci }}">{{ j.apellido }}, {{ j.nombre }}</option>{% endfor %}</select></label>
+      <label>Minuto <input type="number" name="minuto" min="1" max="60" required></label>
+      <label>Color <select name="color" required><option value="amarilla">Amarilla</option><option value="roja">Roja</option></select></label>
+      <button type="submit">Registrar tarjeta</button>
+    </form>
+    <p class="nota">Una roja, o la 3ª amarilla de la edición, genera sola una fecha de suspensión.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% if p.estado == 'programado' and not motivo %}
+<div class="tarjeta">
+  <h2>4. Cerrar el partido</h2>
+  <form method="post" action="{{ url_for('partido_cerrar', id_partido=p.id_partido) }}" onsubmit="return confirm('¿Marcar el partido como jugado?')">
+    <button type="submit">Marcar como jugado</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

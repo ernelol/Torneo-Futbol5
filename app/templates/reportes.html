@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes{% endblock %}
+{% block contenido %}
+<h1>Reportes</h1>
+{% include "_selector_torneo.html" %}
+<ol class="menu">
+  {% for r in reportes %}
+    <li><a href="{{ url_for('reporte', slug=r.slug, torneo=torneo.id_torneo if torneo) }}">{{ r.titulo }}</a> – {{ r.descripcion }}</li>
+  {% endfor %}
+</ol>
+{% endblock %}

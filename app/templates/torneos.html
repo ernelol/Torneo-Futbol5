@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Torneos{% endblock %}
+{% block contenido %}
+<h1>Torneos</h1>
+<p class="nota">Etapas: <strong>inscripción</strong> (se arman equipos y planteles) → <strong>en curso</strong> (se programan partidos y se juegan) → <strong>finalizado</strong>.</p>
+<p><a class="boton" href="{{ url_for('torneo_nuevo') }}">+ Nuevo torneo</a></p>
+<table>
+  <thead><tr><th>Nombre</th><th>Año</th><th>Sem.</th><th>Inicio</th><th>Fin</th><th>Estado</th><th></th></tr></thead>
+  <tbody>
+  {% for t in filas %}
+    <tr>
+      <td>{{ t.nombre }}</td><td>{{ t.anio }}</td><td>{{ t.semestre }}</td>
+      <td>{{ t.fecha_inicio | fmt }}</td><td>{{ t.fecha_fin | fmt }}</td><td><strong>{{ t.estado }}</strong></td>
+      <td class="acciones">
+        {% if t.estado == 'inscripcion' %}
+          <form method="post" action="{{ url_for('torneo_iniciar', id_torneo=t.id_torneo) }}" onsubmit="return confirm('¿Iniciar el torneo? Ya no se podrán modificar los planteles.')"><button class="chico">Iniciar</button></form>
+        {% elif t.estado == 'en_curso' %}
+          <form method="post" action="{{ url_for('torneo_finalizar', id_torneo=t.id_torneo) }}" onsubmit="return confirm('¿Finalizar el torneo?')"><button class="chico">Finalizar</button></form>
+        {% endif %}
+        <a class="boton chico" href="{{ url_for('torneo_editar', id_torneo=t.id_torneo) }}">Editar</a>
+        <form method="post" action="{{ url_for('torneo_eliminar', id_torneo=t.id_torneo) }}" onsubmit="return confirm('¿Eliminar el torneo?')"><button class="chico peligro">Eliminar</button></form>
+      </td>
+    </tr>
+  {% else %}<tr><td colspan="7">No hay torneos.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

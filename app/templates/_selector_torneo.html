@@ -1,0 +1,12 @@
+{# Desplegable para elegir la edición del torneo (recarga la página con ?torneo=ID) #}
+{% if torneos %}
+<form method="get" class="selector">
+  <label>Edición:
+    <select name="torneo" onchange="this.form.submit()">
+      {% for t in torneos %}
+        <option value="{{ t.id_torneo }}" {{ 'selected' if torneo and t.id_torneo == torneo.id_torneo }}>{{ t.nombre }} ({{ t.estado }})</option>
+      {% endfor %}
+    </select>
+  </label>
+</form>
+{% endif %}

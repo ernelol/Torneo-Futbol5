@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titulo %}Plantel{% endblock %}
+{% block contenido %}
+{% set editable = equipo.estado_torneo == 'inscripcion' %}
+<h1>Plantel de {{ equipo.nombre }}</h1>
+<p>Facultad: <strong>{{ equipo.facultad }}</strong> · Jugadores: <strong>{{ plantel|length }}</strong> (entre 5 y 10; máx. 2 docentes/funcionarios)</p>
+{% if not editable %}<p class="aviso error">El torneo ya no está en inscripción: el plantel no se puede modificar.</p>{% endif %}
+<p><a class="boton gris" href="{{ url_for('equipos', torneo=equipo.id_torneo) }}">← Volver a equipos</a></p>
+<table>
+  <thead><tr><th>N°</th><th>Cédula</th><th>Jugador</th><th>Tipo</th><th>Capitán</th><th></th></tr></thead>
+  <tbody>
+  {% for j in plantel %}
+    <tr>
+      <td>{{ j.numero_camiseta }}</td><td>{{ j.ci }}</td><td>{{ j.apellido }}, {{ j.nombre }}</td><td>{{ j.tipo }}</td>
+      <td>{{ '⭐ Capitán' if j.ci == equipo.ci_capitan }}</td>
+      <td class="acciones">
+        {% if editable %}
+          {% if j.ci != equipo.ci_capitan %}
+          <form method="post" action="{{ url_for('plantel_capitan', id_equipo=equipo.id_equipo) }}"><input type="hidden" name="ci" value="{{ j.ci }}"><button class="chico">Hacer capitán</button></form>
+          {% endif %}
+          <form method="post" action="{{ url_for('plantel_quitar', id_equipo=equipo.id_equipo) }}" onsubmit="return confirm('¿Quitar del plantel?')"><input type="hidden" name="ci" value="{{ j.ci }}"><button class="chico peligro">Quitar</button></form>
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}<tr><td colspan="6">El plantel está vacío.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% if editable %}
+<div class="tarjeta">
+  <h2>Agregar jugador</h2>
+  <p class="nota">Solo aparecen jugadores de la facultad del equipo que todavía no integran otro equipo de esta edición.</p>
+  <form method="post">
+    <label>Jugador
+      <select name="ci" required>
+        <option value="">— elegir —</option>
+        {% for c in candidatos %}<option value="{{ c.ci }}">{{ c.apellido }}, {{ c.nombre }} ({{ c.ci }}, {{ c.tipo }})</option>{% endfor %}
+      </select></label>
+    <label>Número de camiseta <input type="number" name="numero_camiseta" min="1" max="99" required></label>
+    <button type="submit">Agregar al plantel</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

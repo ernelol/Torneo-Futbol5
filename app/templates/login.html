@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block titulo %}Ingresar{% endblock %}
+{% block contenido %}
+<div class="tarjeta angosta">
+  <h1>Ingresar</h1>
+  <form method="post">
+    <label>Correo
+      <input type="email" name="correo" maxlength="100" required autofocus>
+    </label>
+    <label>Contraseña
+      <input type="password" name="contrasena" maxlength="100" required>
+    </label>
+    <button type="submit">Entrar</button>
+  </form>
+</div>
+{% endblock %}

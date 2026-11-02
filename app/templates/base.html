@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Torneo Fútbol 5{% endblock %} · UCU</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+  <header>
+    <a class="marca" href="{{ url_for('inicio') }}">⚽ Torneo Fútbol 5</a>
+    {% if rol %}
+    <nav>
+      {% if rol == 'administrador' %}
+        <a href="{{ url_for('torneos') }}">Torneos</a>
+        <a href="{{ url_for('equipos') }}">Equipos</a>
+        <a href="{{ url_for('jugadores') }}">Jugadores</a>
+        <a href="{{ url_for('facultades') }}">Facultades</a>
+        <a href="{{ url_for('complejos') }}">Complejos</a>
+        <a href="{{ url_for('sanciones') }}">Sanciones</a>
+      {% endif %}
+      <a href="{{ url_for('partidos') }}">Partidos</a>
+      {% if rol == 'administrador' %}<a href="{{ url_for('reportes_menu') }}">Reportes</a>{% endif %}
+      <span class="usuario">{{ usuario }} ({{ rol }}) · <a href="{{ url_for('logout') }}">Salir</a></span>
+    </nav>
+    {% endif %}
+  </header>
+  <main>
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% for categoria, texto in mensajes %}<div class="aviso {{ categoria }}">{{ texto }}</div>{% endfor %}
+    {% endwith %}
+    {% block contenido %}{% endblock %}
+  </main>
+</body>
+</html>

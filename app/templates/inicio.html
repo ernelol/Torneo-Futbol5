@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>Torneo Interfacultades de Fútbol 5</h1>
+{% if rol == 'administrador' %}
+<p>Sos <strong>administrador</strong>: gestionás toda la información del torneo.</p>
+<ul class="menu">
+  <li><a href="{{ url_for('torneos') }}">Torneos</a> – crear ediciones, iniciar y finalizar</li>
+  <li><a href="{{ url_for('equipos') }}">Equipos y planteles</a></li>
+  <li><a href="{{ url_for('jugadores') }}">Jugadores</a></li>
+  <li><a href="{{ url_for('facultades') }}">Facultades</a></li>
+  <li><a href="{{ url_for('complejos') }}">Complejos y canchas</a></li>
+  <li><a href="{{ url_for('partidos') }}">Partidos y planillas</a></li>
+  <li><a href="{{ url_for('sanciones') }}">Sanciones</a></li>
+  <li><a href="{{ url_for('reportes_menu') }}">Reportes</a></li>
+</ul>
+{% else %}
+<p>Sos <strong>planillero</strong>: podés registrar la planilla, los goles y las tarjetas de los partidos.</p>
+<ul class="menu"><li><a href="{{ url_for('partidos') }}">Ver partidos y cargar planillas</a></li></ul>
+{% endif %}
+{% endblock %}

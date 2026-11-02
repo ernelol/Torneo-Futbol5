@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Canchas{% endblock %}
+{% block contenido %}
+<h1>Canchas de {{ complejo.nombre }}</h1>
+<p><a class="boton gris" href="{{ url_for('complejos') }}">← Volver a complejos</a></p>
+<table>
+  <thead><tr><th>Cancha</th><th>Superficie</th><th>Techada</th><th></th></tr></thead>
+  <tbody>
+  {% for c in filas %}
+    <tr>
+      <td>{{ c.nombre_cancha }}</td>
+      <form method="post" action="{{ url_for('cancha_modificar', id_complejo=complejo.id_complejo) }}">
+        <input type="hidden" name="nombre_cancha" value="{{ c.nombre_cancha }}">
+        <td><select name="superficie">
+          <option value="sintetico" {{ 'selected' if c.superficie == 'sintetico' }}>Sintético</option>
+          <option value="parquet" {{ 'selected' if c.superficie == 'parquet' }}>Parquet</option></select></td>
+        <td><input type="checkbox" name="techada" value="1" {{ 'checked' if c.techada }}></td>
+        <td class="acciones"><button class="chico">Guardar</button>
+      </form>
+      <form method="post" action="{{ url_for('cancha_eliminar', id_complejo=complejo.id_complejo) }}" onsubmit="return confirm('¿Eliminar la cancha?')">
+        <input type="hidden" name="nombre_cancha" value="{{ c.nombre_cancha }}"><button class="chico peligro">Eliminar</button></form></td>
+    </tr>
+  {% else %}<tr><td colspan="4">Este complejo todavía no tiene canchas.</td></tr>{% endfor %}
+  </tbody>
+</table>
+<div class="tarjeta">
+  <h2>Nueva cancha</h2>
+  <form method="post">
+    <label>Nombre <input name="nombre_cancha" maxlength="40" required></label>
+    <label>Superficie
+      <select name="superficie" required><option value="sintetico">Sintético</option><option value="parquet">Parquet</option></select></label>
+    <label class="check"><input type="checkbox" name="techada" value="1"> Techada</label>
+    <button type="submit">Agregar</button>
+  </form>
+</div>
+{% endblock %}

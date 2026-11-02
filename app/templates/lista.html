@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<h1>{{ titulo }}</h1>
+{% include "_selector_torneo.html" %}
+{% if nota %}<p class="nota">{{ nota }}</p>{% endif %}
+{% if nuevo %}<p><a class="boton" href="{{ nuevo }}">+ Nuevo</a></p>{% endif %}
+<table>
+  <thead><tr>{% for clave, nombre in columnas %}<th>{{ nombre }}</th>{% endfor %}<th></th></tr></thead>
+  <tbody>
+  {% for fila in filas %}
+    <tr>
+      {% for clave, nombre in columnas %}<td>{{ fila[clave] | fmt }}</td>{% endfor %}
+      <td class="acciones">
+        {% if cuando is not defined or cuando(fila) %}
+        {% for texto, url, confirmar in acciones %}
+          {% if confirmar %}
+            <form method="post" action="{{ url.format(**fila) }}" onsubmit="return confirm('{{ confirmar }}')"><button class="chico peligro">{{ texto }}</button></form>
+          {% else %}
+            <a class="boton chico" href="{{ url.format(**fila) }}">{{ texto }}</a>
+          {% endif %}
+        {% endfor %}
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="{{ columnas|length + 1 }}">No hay registros.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

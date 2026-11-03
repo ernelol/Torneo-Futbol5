@@ -85,8 +85,10 @@ Se respetaron las tablas del enunciado y se agregó solo lo necesario:
 | Jugadores de la facultad del equipo | `reglas.agregar_a_plantel` |
 | Un jugador en un solo equipo por edición | `reglas.agregar_a_plantel` **y** `UNIQUE` en la base |
 | Planteles solo se modifican en inscripción | `reglas.exigir_inscripcion` |
+| Un jugador en un plantel no puede cambiar de facultad ni de tipo | `reglas.validar_cambio_jugador` |
 | Capitán es uno de sus jugadores | `reglas.designar_capitan` |
 | Ambos equipos de la misma edición | `reglas.validar_partido` **y** FK compuesta |
+| Turnos de 1 hora entre 18:00 y 23:00 | `CHECK` en la tabla `turno` |
 | Equipo no juega contra sí mismo | `reglas.validar_partido` **y** `CHECK` |
 | No repetir rival (salvo cancelado) | `reglas.validar_partido` (ignora partidos cancelados) |
 | Un partido por fecha por equipo | `reglas.validar_partido` |

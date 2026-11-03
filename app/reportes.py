@@ -89,19 +89,19 @@ REPORTES = [
     {
         "slug": "canchas-turnos",
         "titulo": "Canchas y turnos más utilizados",
-        "descripcion": "Cuenta los partidos jugados y programados (no los cancelados ni postergados).",
+        "descripcion": "Cuenta solo los partidos ya jugados.",
         "consultas": [
             ("Canchas", """
                 SELECT c.nombre AS `Complejo`, p.nombre_cancha AS `Cancha`, COUNT(*) AS `Partidos`
                   FROM partido p JOIN complejo c ON c.id_complejo = p.id_complejo
-                 WHERE p.id_torneo = %(torneo)s AND p.estado IN ('jugado','programado')
+                 WHERE p.id_torneo = %(torneo)s AND p.estado = 'jugado'
                  GROUP BY c.id_complejo, c.nombre, p.nombre_cancha
                  ORDER BY `Partidos` DESC, c.nombre, p.nombre_cancha"""),
             ("Turnos", """
                 SELECT LEFT(t.hora_inicio, 5) AS `Desde`, LEFT(t.hora_fin, 5) AS `Hasta`,
                        COUNT(*) AS `Partidos`
                   FROM partido p JOIN turno t ON t.id_turno = p.id_turno
-                 WHERE p.id_torneo = %(torneo)s AND p.estado IN ('jugado','programado')
+                 WHERE p.id_torneo = %(torneo)s AND p.estado = 'jugado'
                  GROUP BY t.id_turno, t.hora_inicio, t.hora_fin
                  ORDER BY `Partidos` DESC, t.hora_inicio"""),
         ],

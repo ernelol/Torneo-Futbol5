@@ -260,6 +260,7 @@ def jugador_editar(ci):
         def guardar():
             d = leer_jugador()
             d["ci"] = ci  # la cédula es la clave: no se cambia
+            reglas.validar_cambio_jugador(ci, d["id_facultad"], d["tipo"])
             ejecutar("""UPDATE jugador SET nombre=%s, apellido=%s, email=%s, fecha_nacimiento=%s,
                                id_facultad=%s, tipo=%s WHERE ci=%s""",
                      (d["nombre"], d["apellido"], d["email"], d["nacimiento"], d["id_facultad"], d["tipo"], ci))

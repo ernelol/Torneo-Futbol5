@@ -75,7 +75,7 @@ Se implementaron los 9 reportes pedidos y 3 consultas propias:
 | 2 | Tabla de goleadores (top 10) |
 | 3 | Fair play por equipo |
 | 4 | Promedio de goles por partido (por fecha y total) |
-| 5 | Canchas y turnos más utilizados |
+| 5 | Canchas y turnos más utilizados (solo partidos jugados) |
 | 6 | Jugadores por facultad y tipo |
 | 7 | Inscriptos que nunca figuraron en una planilla |
 | 8 | Sanciones por equipo y motivo |
@@ -88,7 +88,7 @@ Se eligieron las tres consultas propias porque cubren necesidades concretas de l
 
 ### 2.7 Pruebas realizadas
 
-Se probó el sistema de punta a punta contra una base MariaDB 10.11 configurada con el modo SQL estricto de MySQL 8 (`ONLY_FULL_GROUP_BY`, `STRICT_TRANS_TABLES`): login y permisos por rol, ABMs, rechazo de cada regla de programación de partidos, planilla con jugador suspendido, goles y autogoles, generación y borrado de sanciones automáticas, regla de 48 horas, y que el planillero no pueda borrar jugadores ni leer `login` a nivel de base de datos. Los 12 reportes se verificaron contra la tabla de posiciones calculada en forma independiente.
+Se probó el sistema de punta a punta contra una base MariaDB 10.11 configurada con el modo SQL estricto de MySQL 8 (`ONLY_FULL_GROUP_BY`, `STRICT_TRANS_TABLES`): login y permisos por rol, ABMs, rechazo de cada regla de programación de partidos, planilla con jugador suspendido, goles y autogoles, generación y borrado de sanciones automáticas, regla de 48 horas, y que el planillero no pueda borrar jugadores ni leer `login` a nivel de base de datos. La tabla de posiciones se verificó contra un cálculo independiente hecho en Python a partir de los datos de prueba; los demás reportes se revisaron manualmente contra esos mismos datos. Además, el sistema se levantó con `docker compose up --build` sobre MySQL 8.0 y los scripts `sql/` se ejecutaron sin errores.
 
 ## 3. Modelo de datos
 
@@ -104,6 +104,7 @@ Se implementaron todas las estructuras pedidas (`login`, `facultad`, `jugador`, 
 | `UNIQUE (ci_jugador, id_torneo)` en el plantel | Un jugador no integra dos equipos en la misma edición |
 | `UNIQUE (dia, id_turno, nombre_cancha, id_complejo)` en `partido` | Una cancha no tiene dos partidos el mismo día y turno |
 | `UNIQUE` en `facultad.nombre`, `jugador.email`, `torneo (anio, semestre)`, `equipo (id_torneo, nombre)`, `complejo.nombre` | Evitar duplicados |
+| Restricción `CHECK` en `turno` | Garantiza que los turnos sean de una hora entre las 18:00 y las 23:00, como pide la letra |
 | Vistas `v_goles_acreditados` y `v_resultado_partido` | Calcular el resultado desde los goles |
 | Valores de `ENUM` sin tildes ni espacios | Evitar problemas de codificación y simplificar el código |
 

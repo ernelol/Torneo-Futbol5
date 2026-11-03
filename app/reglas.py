@@ -111,6 +111,19 @@ def agregar_a_plantel(id_equipo, ci, camiseta):
              "VALUES (%s, %s, %s, %s)", (id_equipo, ci, equipo["id_torneo"], camiseta))
 
 
+def validar_cambio_jugador(ci, id_facultad, tipo):
+    """Si el jugador ya integra un plantel, no se le puede cambiar la facultad ni el tipo:
+    eso rompería las reglas del plantel (misma facultad que el equipo, máximo 2 docentes/funcionarios)."""
+    actual = consultar_uno("SELECT id_facultad, tipo FROM jugador WHERE ci = %s", (ci,))
+    if actual is None:
+        raise ReglaError("El jugador no existe.")
+    if actual["id_facultad"] == id_facultad and actual["tipo"] == tipo:
+        return
+    en_plantel = consultar_uno("SELECT 1 AS x FROM equipo_jugador_torneo WHERE ci_jugador = %s LIMIT 1", (ci,))
+    if en_plantel:
+        raise ReglaError("El jugador integra un plantel: no se puede cambiar su facultad ni su tipo.")
+
+
 def quitar_de_plantel(id_equipo, ci):
     equipo = get_equipo(id_equipo)
     exigir_inscripcion(equipo["id_torneo"])

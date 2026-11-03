@@ -147,7 +147,9 @@ CREATE TABLE turno (
     hora_fin    TIME NOT NULL,
     PRIMARY KEY (id_turno),
     UNIQUE KEY uq_turno_inicio (hora_inicio),
-    CONSTRAINT ck_turno_horas CHECK (hora_fin > hora_inicio)
+    -- turnos de exactamente una hora, entre las 18:00 y las 23:00
+    CONSTRAINT ck_turno_horas CHECK (hora_inicio >= '18:00:00' AND hora_fin <= '23:00:00'
+                                     AND TIME_TO_SEC(hora_fin) - TIME_TO_SEC(hora_inicio) = 3600)
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------

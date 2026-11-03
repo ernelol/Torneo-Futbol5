@@ -139,16 +139,7 @@ def inicio():
 @solo_admin
 def facultades():
     filas = consultar("SELECT * FROM facultad ORDER BY nombre")
-    return render_template("lista.html", titulo="Facultades", filas=filas,
-                           columnas=[("id_facultad", "ID"), ("nombre", "Nombre")],
-                           nuevo=url_for("facultad_nueva"),
-                           acciones=[("Editar", "/facultades/{id_facultad}/editar", None),
-                                     ("Eliminar", "/facultades/{id_facultad}/eliminar", "¿Eliminar la facultad?")])
-
-
-def campos_facultad(f=None):
-    f = f or {}
-    return [dict(nombre="nombre", etiqueta="Nombre", tipo="text", maximo=80, valor=f.get("nombre", ""))]
+    return render_template("facultades.html", filas=filas)
 
 
 @app.route("/facultades/nueva", methods=["GET", "POST"])
@@ -159,8 +150,7 @@ def facultad_nueva():
             ejecutar("INSERT INTO facultad (nombre) VALUES (%s)", (v.texto(request.form.get("nombre"), "Nombre"),))
         if intentar(guardar, "Facultad creada."):
             return redirect(url_for("facultades"))
-    return render_template("form.html", titulo="Nueva facultad", campos=campos_facultad(request.form),
-                           volver=url_for("facultades"))
+    return render_template("facultad_form.html", titulo="Nueva facultad", f=request.form)
 
 
 @app.route("/facultades/<int:id_facultad>/editar", methods=["GET", "POST"])
@@ -173,9 +163,8 @@ def facultad_editar(id_facultad):
                      (v.texto(request.form.get("nombre"), "Nombre"), id_facultad))
         if intentar(guardar, "Facultad modificada."):
             return redirect(url_for("facultades"))
-    return render_template("form.html", titulo="Editar facultad",
-                           campos=campos_facultad(request.form if request.method == "POST" else fila),
-                           volver=url_for("facultades"))
+    return render_template("facultad_form.html", titulo="Editar facultad",
+                           f=request.form if request.method == "POST" else fila)
 
 
 @app.route("/facultades/<int:id_facultad>/eliminar", methods=["POST"])
@@ -195,30 +184,11 @@ def jugadores():
     filas = consultar("""SELECT j.*, f.nombre AS facultad FROM jugador j
                            JOIN facultad f ON f.id_facultad = j.id_facultad
                           ORDER BY j.apellido, j.nombre""")
-    return render_template("lista.html", titulo="Jugadores", filas=filas, nuevo=url_for("jugador_nuevo"),
-                           columnas=[("ci", "Cédula"), ("nombre", "Nombre"), ("apellido", "Apellido"),
-                                     ("email", "Email"), ("fecha_nacimiento", "Nacimiento"),
-                                     ("facultad", "Facultad"), ("tipo", "Tipo")],
-                           acciones=[("Editar", "/jugadores/{ci}/editar", None),
-                                     ("Eliminar", "/jugadores/{ci}/eliminar", "¿Eliminar al jugador?")])
+    return render_template("jugadores.html", filas=filas)
 
 
-def campos_jugador(j, edicion=False):
-    facultades_ = consultar("SELECT id_facultad, nombre FROM facultad ORDER BY nombre")
-    hoy = date.today().isoformat()
-    return [
-        dict(nombre="ci", etiqueta="Cédula (sin puntos ni guión)", tipo="text", maximo=8,
-             patron=r"\d{6,8}", valor=j.get("ci", ""), solo_lectura=edicion),
-        dict(nombre="nombre", etiqueta="Nombre", tipo="text", maximo=60, valor=j.get("nombre", "")),
-        dict(nombre="apellido", etiqueta="Apellido", tipo="text", maximo=60, valor=j.get("apellido", "")),
-        dict(nombre="email", etiqueta="Email", tipo="email", maximo=100, valor=j.get("email", "")),
-        dict(nombre="fecha_nacimiento", etiqueta="Fecha de nacimiento", tipo="date", maximo_fecha=hoy,
-             valor=j.get("fecha_nacimiento", "")),
-        dict(nombre="id_facultad", etiqueta="Facultad", tipo="select", valor=str(j.get("id_facultad", "")),
-             opciones=[(str(f["id_facultad"]), f["nombre"]) for f in facultades_]),
-        dict(nombre="tipo", etiqueta="Tipo", tipo="select", valor=j.get("tipo", ""),
-             opciones=[(t, t.capitalize()) for t in TIPOS_JUGADOR]),
-    ]
+def lista_facultades():
+    return consultar("SELECT id_facultad, nombre FROM facultad ORDER BY nombre")
 
 
 def leer_jugador():
@@ -248,8 +218,8 @@ def jugador_nuevo():
                      (d["ci"], d["nombre"], d["apellido"], d["email"], d["nacimiento"], d["id_facultad"], d["tipo"]))
         if intentar(guardar, "Jugador creado."):
             return redirect(url_for("jugadores"))
-    return render_template("form.html", titulo="Nuevo jugador", campos=campos_jugador(request.form),
-                           volver=url_for("jugadores"))
+    return render_template("jugador_form.html", titulo="Nuevo jugador", f=request.form, editando=False,
+                           facultades=lista_facultades(), tipos=TIPOS_JUGADOR, hoy=date.today().isoformat())
 
 
 @app.route("/jugadores/<int:ci>/editar", methods=["GET", "POST"])
@@ -268,8 +238,8 @@ def jugador_editar(ci):
             return redirect(url_for("jugadores"))
     datos = request.form.to_dict() if request.method == "POST" else fila
     datos["ci"] = ci
-    return render_template("form.html", titulo="Editar jugador", campos=campos_jugador(datos, edicion=True),
-                           volver=url_for("jugadores"))
+    return render_template("jugador_form.html", titulo="Editar jugador", f=datos, editando=True,
+                           facultades=lista_facultades(), tipos=TIPOS_JUGADOR, hoy=date.today().isoformat())
 
 
 @app.route("/jugadores/<int:ci>/eliminar", methods=["POST"])
@@ -284,18 +254,7 @@ def jugador_eliminar(ci):
 @solo_admin
 def complejos():
     filas = consultar("SELECT * FROM complejo ORDER BY nombre")
-    return render_template("lista.html", titulo="Complejos deportivos", filas=filas,
-                           nuevo=url_for("complejo_nuevo"),
-                           columnas=[("nombre", "Nombre"), ("direccion", "Dirección"), ("departamento", "Departamento")],
-                           acciones=[("Canchas", "/complejos/{id_complejo}/canchas", None),
-                                     ("Editar", "/complejos/{id_complejo}/editar", None),
-                                     ("Eliminar", "/complejos/{id_complejo}/eliminar", "¿Eliminar el complejo?")])
-
-
-def campos_complejo(c):
-    return [dict(nombre="nombre", etiqueta="Nombre", tipo="text", maximo=80, valor=c.get("nombre", "")),
-            dict(nombre="direccion", etiqueta="Dirección", tipo="text", maximo=120, valor=c.get("direccion", "")),
-            dict(nombre="departamento", etiqueta="Departamento", tipo="text", maximo=40, valor=c.get("departamento", ""))]
+    return render_template("complejos.html", filas=filas)
 
 
 def leer_complejo():
@@ -312,8 +271,7 @@ def complejo_nuevo():
             ejecutar("INSERT INTO complejo (nombre, direccion, departamento) VALUES (%s, %s, %s)", leer_complejo())
         if intentar(guardar, "Complejo creado."):
             return redirect(url_for("complejos"))
-    return render_template("form.html", titulo="Nuevo complejo", campos=campos_complejo(request.form),
-                           volver=url_for("complejos"))
+    return render_template("complejo_form.html", titulo="Nuevo complejo", f=request.form)
 
 
 @app.route("/complejos/<int:id_complejo>/editar", methods=["GET", "POST"])
@@ -326,9 +284,8 @@ def complejo_editar(id_complejo):
                      leer_complejo() + (id_complejo,))
         if intentar(guardar, "Complejo modificado."):
             return redirect(url_for("complejos"))
-    return render_template("form.html", titulo="Editar complejo",
-                           campos=campos_complejo(request.form if request.method == "POST" else fila),
-                           volver=url_for("complejos"))
+    return render_template("complejo_form.html", titulo="Editar complejo",
+                           f=request.form if request.method == "POST" else fila)
 
 
 @app.route("/complejos/<int:id_complejo>/eliminar", methods=["POST"])
@@ -382,15 +339,6 @@ def torneos():
     return render_template("torneos.html", filas=filas)
 
 
-def campos_torneo(t):
-    return [dict(nombre="nombre", etiqueta="Nombre", tipo="text", maximo=100, valor=t.get("nombre", "")),
-            dict(nombre="anio", etiqueta="Año", tipo="number", minimo=2000, maximo_num=2100, valor=t.get("anio", "")),
-            dict(nombre="semestre", etiqueta="Semestre", tipo="select", valor=str(t.get("semestre", "")),
-                 opciones=[("1", "1"), ("2", "2")]),
-            dict(nombre="fecha_inicio", etiqueta="Fecha de inicio", tipo="date", valor=t.get("fecha_inicio", "")),
-            dict(nombre="fecha_fin", etiqueta="Fecha de fin", tipo="date", valor=t.get("fecha_fin", ""))]
-
-
 def leer_torneo():
     inicio = v.fecha(request.form.get("fecha_inicio"), "Fecha de inicio")
     fin = v.fecha(request.form.get("fecha_fin"), "Fecha de fin")
@@ -410,8 +358,7 @@ def torneo_nuevo():
                         VALUES (%s, %s, %s, %s, %s, 'inscripcion')""", leer_torneo())
         if intentar(guardar, "Torneo creado en etapa de inscripción."):
             return redirect(url_for("torneos"))
-    return render_template("form.html", titulo="Nuevo torneo", campos=campos_torneo(request.form),
-                           volver=url_for("torneos"))
+    return render_template("torneo_form.html", titulo="Nuevo torneo", f=request.form)
 
 
 @app.route("/torneos/<int:id_torneo>/editar", methods=["GET", "POST"])
@@ -424,9 +371,8 @@ def torneo_editar(id_torneo):
                          WHERE id_torneo=%s""", leer_torneo() + (id_torneo,))
         if intentar(guardar, "Torneo modificado."):
             return redirect(url_for("torneos"))
-    return render_template("form.html", titulo="Editar torneo",
-                           campos=campos_torneo(request.form if request.method == "POST" else fila),
-                           volver=url_for("torneos"))
+    return render_template("torneo_form.html", titulo="Editar torneo",
+                           f=request.form if request.method == "POST" else fila)
 
 
 @app.route("/torneos/<int:id_torneo>/eliminar", methods=["POST"])
@@ -463,20 +409,14 @@ def equipos():
                                FROM equipo e JOIN facultad f ON f.id_facultad = e.id_facultad
                                LEFT JOIN jugador j ON j.ci = e.ci_capitan
                               WHERE e.id_torneo = %s ORDER BY e.nombre""", (torneo["id_torneo"],))
-    return render_template("lista.html", titulo="Equipos", filas=filas, torneos=lista_torneos, torneo=torneo,
-                           nuevo=url_for("equipo_nuevo", torneo=torneo["id_torneo"]) if torneo else None,
-                           columnas=[("nombre", "Equipo"), ("facultad", "Facultad"), ("capitan", "Capitán"),
-                                     ("jugadores", "Jugadores")],
-                           acciones=[("Plantel", "/equipos/{id_equipo}/plantel", None),
-                                     ("Editar", "/equipos/{id_equipo}/editar", None),
-                                     ("Eliminar", "/equipos/{id_equipo}/eliminar", "¿Eliminar el equipo?")])
+    return render_template("equipos.html", filas=filas, torneos=lista_torneos, torneo=torneo)
 
 
 @app.route("/equipos/nuevo", methods=["GET", "POST"])
 @solo_admin
 def equipo_nuevo():
     id_torneo = request.values.get("torneo", type=int) or abort(404)
-    facultades_ = consultar("SELECT id_facultad, nombre FROM facultad ORDER BY nombre")
+    facultades_ = lista_facultades()
     if request.method == "POST":
         def guardar():
             reglas.exigir_inscripcion(id_torneo)
@@ -487,13 +427,8 @@ def equipo_nuevo():
                      (nombre, id_torneo, id_facultad))
         if intentar(guardar, "Equipo creado. Ahora armá su plantel y designá al capitán."):
             return redirect(url_for("equipos", torneo=id_torneo))
-    campos = [dict(nombre="nombre", etiqueta="Nombre del equipo", tipo="text", maximo=80,
-                   valor=request.form.get("nombre", "")),
-              dict(nombre="id_facultad", etiqueta="Facultad que representa", tipo="select",
-                   valor=request.form.get("id_facultad", ""),
-                   opciones=[(str(f["id_facultad"]), f["nombre"]) for f in facultades_])]
-    return render_template("form.html", titulo="Nuevo equipo", campos=campos, oculto=("torneo", id_torneo),
-                           volver=url_for("equipos", torneo=id_torneo))
+    return render_template("equipo_form.html", titulo="Nuevo equipo", f=request.form, nuevo=True,
+                           facultades=facultades_, id_torneo=id_torneo)
 
 
 @app.route("/equipos/<int:id_equipo>/editar", methods=["GET", "POST"])
@@ -507,10 +442,8 @@ def equipo_editar(id_equipo):
                      (v.texto(request.form.get("nombre"), "Nombre del equipo", 80), id_equipo))
         if intentar(guardar, "Equipo modificado."):
             return redirect(url_for("equipos", torneo=equipo["id_torneo"]))
-    campos = [dict(nombre="nombre", etiqueta="Nombre del equipo", tipo="text", maximo=80,
-                   valor=request.form.get("nombre", equipo["nombre"]))]
-    return render_template("form.html", titulo="Editar equipo", campos=campos,
-                           volver=url_for("equipos", torneo=equipo["id_torneo"]))
+    return render_template("equipo_form.html", titulo="Editar equipo", nuevo=False, id_torneo=equipo["id_torneo"],
+                           f=request.form if request.method == "POST" else equipo)
 
 
 @app.route("/equipos/<int:id_equipo>/eliminar", methods=["POST"])
@@ -584,27 +517,13 @@ def sanciones():
                                LEFT JOIN equipo e ON e.id_equipo = ejt.id_equipo
                               WHERE s.id_torneo = %s ORDER BY s.numero_fecha_inicio, j.apellido""",
                          (torneo["id_torneo"],))
-    return render_template("lista.html", titulo="Sanciones", filas=filas, torneos=lista_torneos, torneo=torneo,
-                           nuevo=url_for("sancion_nueva", torneo=torneo["id_torneo"]) if torneo else None,
-                           columnas=[("jugador", "Jugador"), ("equipo", "Equipo"), ("motivo", "Motivo"),
-                                     ("numero_fecha_inicio", "Desde fecha"), ("ultima_fecha", "Hasta fecha")],
-                           acciones=[("Editar", "/sanciones/{id_sancion}/editar", None),
-                                     ("Eliminar", "/sanciones/{id_sancion}/eliminar", "¿Eliminar la sanción?")],
-                           cuando=lambda fila: fila["id_tarjeta"] is None,
-                           nota="Las sanciones por roja o por 3 amarillas son automáticas: se generan al registrar "
-                                "las tarjetas y no se editan a mano (no tienen botones).")
+    return render_template("sanciones.html", filas=filas, torneos=lista_torneos, torneo=torneo)
 
 
-def campos_sancion(id_torneo, s):
-    jugadores_ = consultar(
+def jugadores_del_torneo(id_torneo):
+    return consultar(
         """SELECT j.ci, j.nombre, j.apellido FROM equipo_jugador_torneo ejt
              JOIN jugador j ON j.ci = ejt.ci_jugador WHERE ejt.id_torneo = %s ORDER BY j.apellido""", (id_torneo,))
-    return [dict(nombre="ci", etiqueta="Jugador", tipo="select", valor=str(s.get("ci_jugador", s.get("ci", ""))),
-                 opciones=[(str(j["ci"]), f"{j['apellido']}, {j['nombre']} ({j['ci']})") for j in jugadores_]),
-            dict(nombre="inicio", etiqueta="Desde la fecha N°", tipo="number", minimo=1, maximo_num=99,
-                 valor=s.get("numero_fecha_inicio", s.get("inicio", ""))),
-            dict(nombre="cantidad", etiqueta="Cantidad de fechas", tipo="number", minimo=1, maximo_num=50,
-                 valor=s.get("cantidad_fechas", s.get("cantidad", "")))]
 
 
 @app.route("/sanciones/nueva", methods=["GET", "POST"])
@@ -621,9 +540,8 @@ def sancion_nueva():
                         VALUES (%s, %s, 'disciplinaria', %s, %s)""", (ci, id_torneo, inicio, cantidad))
         if intentar(guardar, "Sanción cargada."):
             return redirect(url_for("sanciones", torneo=id_torneo))
-    return render_template("form.html", titulo="Nueva sanción disciplinaria",
-                           campos=campos_sancion(id_torneo, request.form), oculto=("torneo", id_torneo),
-                           volver=url_for("sanciones", torneo=id_torneo))
+    return render_template("sancion_form.html", titulo="Nueva sanción disciplinaria", f=request.form, nueva=True,
+                           jugadores=jugadores_del_torneo(id_torneo), id_torneo=id_torneo)
 
 
 @app.route("/sanciones/<int:id_sancion>/editar", methods=["GET", "POST"])
@@ -639,10 +557,9 @@ def sancion_editar(id_sancion):
                      (inicio, cantidad, id_sancion))
         if intentar(guardar, "Sanción modificada."):
             return redirect(url_for("sanciones", torneo=s["id_torneo"]))
-    campos = [c for c in campos_sancion(s["id_torneo"], request.form if request.method == "POST" else s)
-              if c["nombre"] != "ci"]  # el jugador no se cambia: se elimina y se crea otra
-    return render_template("form.html", titulo="Editar sanción", campos=campos,
-                           volver=url_for("sanciones", torneo=s["id_torneo"]))
+    # el jugador no se cambia: si hace falta, se elimina la sanción y se crea otra
+    datos = request.form if request.method == "POST" else {"inicio": s["numero_fecha_inicio"], "cantidad": s["cantidad_fechas"]}
+    return render_template("sancion_form.html", titulo="Editar sanción", f=datos, nueva=False, id_torneo=s["id_torneo"])
 
 
 @app.route("/sanciones/<int:id_sancion>/eliminar", methods=["POST"])
@@ -690,29 +607,6 @@ def opciones_partido(id_torneo):
     return equipos_, turnos, canchas_
 
 
-def campos_partido(id_torneo, p, con_estado=False):
-    equipos_, turnos, canchas_ = opciones_partido(id_torneo)
-    opciones_equipos = [(str(e["id_equipo"]), e["nombre"]) for e in equipos_]
-    campos = [
-        dict(nombre="numero_fecha", etiqueta="Fecha N° del torneo", tipo="number", minimo=1, maximo_num=99,
-             valor=p.get("numero_fecha", "")),
-        dict(nombre="local", etiqueta="Equipo local", tipo="select", valor=str(p.get("id_equipo_local", p.get("local", ""))),
-             opciones=opciones_equipos),
-        dict(nombre="visitante", etiqueta="Equipo visitante", tipo="select",
-             valor=str(p.get("id_equipo_visitante", p.get("visitante", ""))), opciones=opciones_equipos),
-        dict(nombre="dia", etiqueta="Día", tipo="date", valor=p.get("dia", "")),
-        dict(nombre="id_turno", etiqueta="Turno", tipo="select", valor=str(p.get("id_turno", "")),
-             opciones=[(str(t["id_turno"]), f"{t['desde']} a {t['hasta']}") for t in turnos]),
-        dict(nombre="cancha", etiqueta="Cancha", tipo="select",
-             valor=p.get("cancha", f"{p['id_complejo']}|{p['nombre_cancha']}" if "nombre_cancha" in p else ""),
-             opciones=[(f"{c['id_complejo']}|{c['nombre_cancha']}", f"{c['complejo']} - {c['nombre_cancha']}") for c in canchas_]),
-    ]
-    if con_estado:
-        campos.append(dict(nombre="estado", etiqueta="Estado", tipo="select", valor=p.get("estado", "programado"),
-                           opciones=[("programado", "Programado"), ("postergado", "Postergado"), ("cancelado", "Cancelado")]))
-    return campos
-
-
 def leer_partido(id_torneo, con_estado=False):
     equipos_, turnos, canchas_ = opciones_partido(id_torneo)
     ids_equipos = [str(e["id_equipo"]) for e in equipos_]
@@ -736,8 +630,9 @@ def partido_nuevo():
     if request.method == "POST":
         if intentar(lambda: reglas.crear_partido(leer_partido(id_torneo)), "Partido programado."):
             return redirect(url_for("partidos", torneo=id_torneo))
-    return render_template("form.html", titulo="Nuevo partido", campos=campos_partido(id_torneo, request.form),
-                           oculto=("torneo", id_torneo), volver=url_for("partidos", torneo=id_torneo))
+    equipos_, turnos, canchas_ = opciones_partido(id_torneo)
+    return render_template("partido_form.html", titulo="Nuevo partido", f=request.form, nuevo=True,
+                           equipos=equipos_, turnos=turnos, canchas=canchas_, id_torneo=id_torneo)
 
 
 @app.route("/partidos/<int:id_partido>/editar", methods=["GET", "POST"])
@@ -748,10 +643,14 @@ def partido_editar(id_partido):
         if intentar(lambda: reglas.editar_partido(id_partido, leer_partido(p["id_torneo"], con_estado=True)),
                     "Partido modificado."):
             return redirect(url_for("partidos", torneo=p["id_torneo"]))
-    datos = request.form.to_dict() if request.method == "POST" else p
-    return render_template("form.html", titulo="Editar partido",
-                           campos=campos_partido(p["id_torneo"], datos, con_estado=True),
-                           volver=url_for("partidos", torneo=p["id_torneo"]))
+    if request.method == "POST":
+        datos = request.form
+    else:  # los nombres de los campos del formulario difieren de las columnas
+        datos = dict(p, local=p["id_equipo_local"], visitante=p["id_equipo_visitante"],
+                     cancha=f"{p['id_complejo']}|{p['nombre_cancha']}")
+    equipos_, turnos, canchas_ = opciones_partido(p["id_torneo"])
+    return render_template("partido_form.html", titulo="Editar partido", f=datos, nuevo=False,
+                           equipos=equipos_, turnos=turnos, canchas=canchas_, id_torneo=p["id_torneo"])
 
 
 @app.route("/partidos/<int:id_partido>/eliminar", methods=["POST"])

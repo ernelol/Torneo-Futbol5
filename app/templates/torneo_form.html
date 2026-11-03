@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="tarjeta">
+  <h1>{{ titulo }}</h1>
+  <form method="post">
+    <label>Nombre
+      <input type="text" name="nombre" value="{{ f.nombre }}" maxlength="100" required>
+    </label>
+    <label>Año
+      <input type="number" name="anio" value="{{ f.anio }}" min="2000" max="2100" required>
+    </label>
+    <label>Semestre
+      <select name="semestre" required>
+        <option value="">— elegir —</option>
+        <option value="1" {{ 'selected' if f.semestre|string == '1' }}>1</option>
+        <option value="2" {{ 'selected' if f.semestre|string == '2' }}>2</option>
+      </select>
+    </label>
+    <label>Fecha de inicio
+      <input type="date" name="fecha_inicio" value="{{ f.fecha_inicio }}" required>
+    </label>
+    <label>Fecha de fin
+      <input type="date" name="fecha_fin" value="{{ f.fecha_fin }}" required>
+    </label>
+    <button type="submit">Guardar</button>
+    <a class="boton gris" href="{{ url_for('torneos') }}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

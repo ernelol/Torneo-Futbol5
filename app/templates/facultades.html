@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Facultades{% endblock %}
+{% block contenido %}
+<h1>Facultades</h1>
+<p><a class="boton" href="{{ url_for('facultad_nueva') }}">+ Nueva facultad</a></p>
+<table>
+  <thead><tr><th>ID</th><th>Nombre</th><th></th></tr></thead>
+  <tbody>
+  {% for x in filas %}
+    <tr>
+      <td>{{ x.id_facultad }}</td>
+      <td>{{ x.nombre }}</td>
+      <td class="acciones">
+        <a class="boton chico" href="{{ url_for('facultad_editar', id_facultad=x.id_facultad) }}">Editar</a>
+        <form method="post" action="{{ url_for('facultad_eliminar', id_facultad=x.id_facultad) }}" onsubmit="return confirm('¿Eliminar la facultad?')"><button class="chico peligro">Eliminar</button></form>
+      </td>
+    </tr>
+  {% else %}<tr><td colspan="3">No hay facultades.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

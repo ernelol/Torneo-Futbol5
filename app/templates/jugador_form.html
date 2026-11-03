@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{# Cada campo trae su validación HTML (1ra capa): required, maxlength, pattern, type=email, type=date, max #}
+{% block contenido %}
+<div class="tarjeta">
+  <h1>{{ titulo }}</h1>
+  <form method="post">
+    <label>Cédula (sin puntos ni guión)
+      <input type="text" name="ci" value="{{ f.ci }}" maxlength="8" pattern="\d{6,8}" required {{ 'readonly' if editando }}>
+    </label>
+    <label>Nombre
+      <input type="text" name="nombre" value="{{ f.nombre }}" maxlength="60" required>
+    </label>
+    <label>Apellido
+      <input type="text" name="apellido" value="{{ f.apellido }}" maxlength="60" required>
+    </label>
+    <label>Email
+      <input type="email" name="email" value="{{ f.email }}" maxlength="100" required>
+    </label>
+    <label>Fecha de nacimiento
+      <input type="date" name="fecha_nacimiento" value="{{ f.fecha_nacimiento }}" max="{{ hoy }}" required>
+    </label>
+    <label>Facultad
+      <select name="id_facultad" required>
+        <option value="">— elegir —</option>
+        {% for fa in facultades %}
+          <option value="{{ fa.id_facultad }}" {{ 'selected' if f.id_facultad|string == fa.id_facultad|string }}>{{ fa.nombre }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Tipo
+      <select name="tipo" required>
+        <option value="">— elegir —</option>
+        {% for t in tipos %}
+          <option value="{{ t }}" {{ 'selected' if f.tipo == t }}>{{ t.capitalize() }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">Guardar</button>
+    <a class="boton gris" href="{{ url_for('jugadores') }}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titulo %}Sanciones{% endblock %}
+{% block contenido %}
+<h1>Sanciones</h1>
+{% include "_selector_torneo.html" %}
+<p class="nota">Las sanciones por roja o por 3 amarillas son automáticas: se generan al registrar las tarjetas y no tienen botones. Las disciplinarias se cargan, editan y eliminan acá.</p>
+{% if torneo %}<p><a class="boton" href="{{ url_for('sancion_nueva', torneo=torneo.id_torneo) }}">+ Nueva sanción disciplinaria</a></p>{% endif %}
+<table>
+  <thead><tr><th>Jugador</th><th>Equipo</th><th>Motivo</th><th>Desde fecha</th><th>Hasta fecha</th><th></th></tr></thead>
+  <tbody>
+  {% for s in filas %}
+    <tr>
+      <td>{{ s.jugador }}</td>
+      <td>{{ s.equipo | fmt }}</td>
+      <td>{{ s.motivo }}</td>
+      <td>{{ s.numero_fecha_inicio }}</td>
+      <td>{{ s.ultima_fecha }}</td>
+      <td class="acciones">
+        {% if s.id_tarjeta is none %}
+          <a class="boton chico" href="{{ url_for('sancion_editar', id_sancion=s.id_sancion) }}">Editar</a>
+          <form method="post" action="{{ url_for('sancion_eliminar', id_sancion=s.id_sancion) }}" onsubmit="return confirm('¿Eliminar la sanción?')"><button class="chico peligro">Eliminar</button></form>
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}<tr><td colspan="6">No hay sanciones.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

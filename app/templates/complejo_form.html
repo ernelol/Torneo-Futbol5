@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="tarjeta">
+  <h1>{{ titulo }}</h1>
+  <form method="post">
+    <label>Nombre
+      <input type="text" name="nombre" value="{{ f.nombre }}" maxlength="80" required>
+    </label>
+    <label>Dirección
+      <input type="text" name="direccion" value="{{ f.direccion }}" maxlength="120" required>
+    </label>
+    <label>Departamento
+      <input type="text" name="departamento" value="{{ f.departamento }}" maxlength="40" required>
+    </label>
+    <button type="submit">Guardar</button>
+    <a class="boton gris" href="{{ url_for('complejos') }}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

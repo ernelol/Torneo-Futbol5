@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="tarjeta">
+  <h1>{{ titulo }}</h1>
+  <form method="post">
+    {% if nueva %}
+    <input type="hidden" name="torneo" value="{{ id_torneo }}">
+    <label>Jugador
+      <select name="ci" required>
+        <option value="">— elegir —</option>
+        {% for j in jugadores %}
+          <option value="{{ j.ci }}" {{ 'selected' if f.ci|string == j.ci|string }}>{{ j.apellido }}, {{ j.nombre }} ({{ j.ci }})</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <label>Desde la fecha N°
+      <input type="number" name="inicio" value="{{ f.inicio }}" min="1" max="99" required>
+    </label>
+    <label>Cantidad de fechas
+      <input type="number" name="cantidad" value="{{ f.cantidad }}" min="1" max="50" required>
+    </label>
+    <button type="submit">Guardar</button>
+    <a class="boton gris" href="{{ url_for('sanciones', torneo=id_torneo) }}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

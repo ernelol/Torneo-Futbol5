@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="tarjeta">
+  <h1>{{ titulo }}</h1>
+  <form method="post">
+    {% if nuevo %}<input type="hidden" name="torneo" value="{{ id_torneo }}">{% endif %}
+    <label>Fecha N° del torneo
+      <input type="number" name="numero_fecha" value="{{ f.numero_fecha }}" min="1" max="99" required>
+    </label>
+    <label>Equipo local
+      <select name="local" required>
+        <option value="">— elegir —</option>
+        {% for e in equipos %}<option value="{{ e.id_equipo }}" {{ 'selected' if f.local|string == e.id_equipo|string }}>{{ e.nombre }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Equipo visitante
+      <select name="visitante" required>
+        <option value="">— elegir —</option>
+        {% for e in equipos %}<option value="{{ e.id_equipo }}" {{ 'selected' if f.visitante|string == e.id_equipo|string }}>{{ e.nombre }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Día
+      <input type="date" name="dia" value="{{ f.dia }}" required>
+    </label>
+    <label>Turno
+      <select name="id_turno" required>
+        <option value="">— elegir —</option>
+        {% for t in turnos %}<option value="{{ t.id_turno }}" {{ 'selected' if f.id_turno|string == t.id_turno|string }}>{{ t.desde }} a {{ t.hasta }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Cancha
+      <select name="cancha" required>
+        <option value="">— elegir —</option>
+        {% for c in canchas %}
+          {% set valor = c.id_complejo|string ~ '|' ~ c.nombre_cancha %}
+          <option value="{{ valor }}" {{ 'selected' if f.cancha == valor }}>{{ c.complejo }} - {{ c.nombre_cancha }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% if not nuevo %}
+    <label>Estado
+      <select name="estado" required>
+        <option value="programado" {{ 'selected' if f.estado == 'programado' }}>Programado</option>
+        <option value="postergado" {{ 'selected' if f.estado == 'postergado' }}>Postergado</option>
+        <option value="cancelado" {{ 'selected' if f.estado == 'cancelado' }}>Cancelado</option>
+      </select>
+    </label>
+    {% endif %}
+    <button type="submit">Guardar</button>
+    <a class="boton gris" href="{{ url_for('partidos', torneo=id_torneo) }}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

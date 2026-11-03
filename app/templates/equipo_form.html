@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="tarjeta">
+  <h1>{{ titulo }}</h1>
+  <form method="post">
+    {% if nuevo %}<input type="hidden" name="torneo" value="{{ id_torneo }}">{% endif %}
+    <label>Nombre del equipo
+      <input type="text" name="nombre" value="{{ f.nombre }}" maxlength="80" required>
+    </label>
+    {% if nuevo %}
+    <label>Facultad que representa
+      <select name="id_facultad" required>
+        <option value="">— elegir —</option>
+        {% for fa in facultades %}
+          <option value="{{ fa.id_facultad }}" {{ 'selected' if f.id_facultad|string == fa.id_facultad|string }}>{{ fa.nombre }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <button type="submit">Guardar</button>
+    <a class="boton gris" href="{{ url_for('equipos', torneo=id_torneo) }}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

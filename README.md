@@ -18,7 +18,6 @@ app/validaciones.py    Validación de campos en el back-end
 app/templates/         Pantallas HTML
 docker-compose.yml     Servicios: db (MySQL) y app (Flask)
 docs/INFORME.md        Informe del trabajo
-docs/GUIA_DEFENSA.md   Guía para entender y defender cada parte
 ```
 
 ## Cómo correrlo con Docker (recomendado)
@@ -85,5 +84,3 @@ Las contraseñas de estos usuarios son de desarrollo y están en `sql/01_schema.
 1. Entrar como administrador → **Reportes**: los 12 reportes ya traen datos.
 2. **Partidos** → partido de la fecha 4 *Humanas Club vs Empresariales FC* (27/10): está pendiente de planilla. Entrá a **Planilla**: el jugador sancionado de Humanas aparece bloqueado.
 3. Entrar como planillero: solo ve **Partidos** y las planillas.
-
-La guía completa para la demo está en `docs/GUIA_DEFENSA.md`.

@@ -57,7 +57,36 @@ Además: contraseñas almacenadas como hash SHA-256; consultas parametrizadas co
 
 ### 2.5 Reglas del torneo
 
-La mayoría de las reglas se aplican **dos veces** (en Python y en la base) para que no puedan violarse aunque se escriba directamente en la base. La relación completa de reglas y dónde se cumple cada una está en `docs/GUIA_DEFENSA.md`, sección 6. Las decisiones más relevantes:
+La mayoría de las reglas se aplican **dos veces** (en Python y en la base) para que no puedan violarse aunque se escriba directamente en la base. La siguiente tabla indica dónde se cumple cada regla del enunciado. Las decisiones más relevantes se detallan debajo de ella.
+
+| Regla | Dónde |
+|---|---|
+| Plantel de 5 a 10 jugadores | Máximo 10: `reglas.agregar_a_plantel`. Mínimo 5: `reglas.iniciar_torneo` y `reglas.validar_partido` |
+| Máximo 2 docentes/funcionarios por plantel | `reglas.agregar_a_plantel` |
+| Jugadores de la facultad del equipo | `reglas.agregar_a_plantel` |
+| Un jugador en un solo equipo por edición | `reglas.agregar_a_plantel` **y** `UNIQUE` en la base |
+| Planteles solo se modifican en inscripción | `reglas.exigir_inscripcion` |
+| Un jugador en un plantel no puede cambiar de facultad ni de tipo | `reglas.validar_cambio_jugador` |
+| Capitán es uno de sus jugadores | `reglas.designar_capitan` |
+| Ambos equipos de la misma edición | `reglas.validar_partido` **y** FK compuesta |
+| Turnos de 1 hora entre 18:00 y 23:00 | `CHECK` en la tabla `turno` |
+| Equipo no juega contra sí mismo | `reglas.validar_partido` **y** `CHECK` |
+| No repetir rival (salvo cancelado) | `reglas.validar_partido` (ignora partidos cancelados) |
+| Un partido por fecha por equipo | `reglas.validar_partido` |
+| Cancha libre en ese día y turno | `reglas.validar_partido` **y** `UNIQUE` |
+| Solo jugadores del plantel en la planilla | FK compuesta **y** `reglas.guardar_planilla` |
+| Suspendidos no pueden figurar | `reglas.guardar_planilla` (usa `esta_suspendido`) |
+| Goles/tarjetas solo de la planilla | FK compuesta **y** `reglas.exigir_en_planilla` |
+| Resultado desde los goles | Vista `v_resultado_partido` |
+| Marcar jugado solo si el turno ya pasó | `reglas.cerrar_partido` → `motivo_no_modificable` |
+| Partido jugado no se elimina | `reglas.eliminar_partido` |
+| Corrección dentro de 48 horas | `reglas.motivo_no_modificable` |
+| 3 / 1 / 0 puntos y desempate | Reporte "Tabla de posiciones" (`ORDER BY Puntos, DG, GF`) |
+| Roja o 3 amarillas = 1 fecha de suspensión | `reglas.recalcular_sanciones` |
+| Sanciones disciplinarias de varias fechas | ABM de sanciones (`cantidad_fechas`) |
+| Dos tipos de usuario | `@solo_admin` + usuarios de MySQL distintos |
+
+Decisiones más relevantes:
 
 1. **Resultado calculado, no almacenado.** El resultado de un partido se obtiene contando goles en la vista `v_resultado_partido`; un autogol se acredita al rival (`v_goles_acreditados`). Evita inconsistencias entre goles y resultado y simplifica la corrección dentro de las 48 horas.
 2. **Claves foráneas compuestas.** `gol` y `tarjeta` referencian a `planilla_partido`, y `planilla_partido` referencia al plantel del equipo; así la base garantiza que solo convierte goles o recibe tarjetas un jugador que figura en la planilla con su equipo.
@@ -133,7 +162,7 @@ Se implementaron todas las estructuras pedidas (`login`, `facultad`, `jugador`, 
 | __/__ | Reportes (9 pedidos + 3 propios) | Consultas verificadas contra cálculo independiente |
 | __/__ | Dockerización e instructivo | `docker compose up --build` |
 | __/__ | Pruebas de punta a punta y correcciones | Todas las pruebas pasan |
-| __/__ | Informe y preparación de la defensa | Este documento y `GUIA_DEFENSA.md` |
+| __/__ | Redacción del informe y revisión final | Este documento |
 
 ## 5. Bibliografía
 
